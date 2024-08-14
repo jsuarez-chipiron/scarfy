@@ -14,6 +14,7 @@ int main(void)
 {
     InitWindow(screenWidth, screenHeight, "raylib [shapes] example - collision area");
 
+    Texture2D background = LoadTexture("forest.png");
     Texture2D scarfy = LoadTexture("scarfy.png");
 
     int frameWidth = scarfy.width/6;
@@ -25,16 +26,22 @@ int main(void)
     int frame = 0;
 
     float scarfy_x = 0.f;
-    float scarfy_vx = 1.6f;
-    float scarfy_flip = 1.f;
+    float scarfy_vx = 3.2f;
+    float scarfy_flip = 1.0f;
+
+    float back_x = -30.0f;
+    float back_vx = -0.1f;
+
+    float frame_rate = 0.12f;
 
     while (!WindowShouldClose())
     {
         scarfy_x += scarfy_vx;
+        back_x += back_vx;
 
         timer += GetFrameTime();
 
-        if ( timer > 0.15f )
+        if ( timer > frame_rate )
         {
             timer = 0.0f;
             frame++;
@@ -44,6 +51,9 @@ int main(void)
         BeginDrawing();
 
         ClearBackground(WHITE);
+
+        Rectangle src_back = { 150.f, 560.0f, (float)screenWidth+200.0f, (float)screenHeight };
+        DrawTextureRec(background, src_back, Vector2{back_x, 0}, WHITE);
 
         Rectangle sourceRec = { (float)frameWidth*frame, 0.0f, (float)frameWidth, (float)frameHeight };
 
@@ -57,6 +67,7 @@ int main(void)
         { 
             scarfy_vx   *= -1.f; 
             scarfy_flip *= -1.f; 
+            back_vx     *= -1.f; 
         }
 
         EndDrawing();
