@@ -24,8 +24,14 @@ int main(void)
     float timer = 0.0f;
     int frame = 0;
 
+    float scarfy_x = 0.f;
+    float scarfy_vx = 1.6f;
+    float scarfy_flip = 1.f;
+
     while (!WindowShouldClose())
     {
+        scarfy_x += scarfy_vx;
+
         timer += GetFrameTime();
 
         if ( timer > 0.15f )
@@ -41,9 +47,17 @@ int main(void)
 
         Rectangle sourceRec = { (float)frameWidth*frame, 0.0f, (float)frameWidth, (float)frameHeight };
 
-        DrawTextureRec(scarfy, sourceRec, Vector2{0, (float)frameHeight}, WHITE);
+        sourceRec.width *= scarfy_flip;
 
-        DrawFPS(10, 10);
+        DrawTextureRec(scarfy, sourceRec, Vector2{scarfy_x, (float)frameHeight}, WHITE);
+
+        DrawFPS(10, 400);
+
+        if ( scarfy_x > screenWidth || scarfy_x < 0-frameWidth ) 
+        { 
+            scarfy_vx   *= -1.f; 
+            scarfy_flip *= -1.f; 
+        }
 
         EndDrawing();
     }
