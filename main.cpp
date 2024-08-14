@@ -14,6 +14,14 @@ int main(void)
 {
     InitWindow(screenWidth, screenHeight, "raylib [shapes] example - collision area");
 
+    InitAudioDevice();
+
+    Music music = LoadMusicStream("country.mp3");
+
+    PlayMusicStream(music);
+
+
+
     Texture2D background = LoadTexture("forest.png");
     Texture2D scarfy = LoadTexture("scarfy.png");
 
@@ -36,6 +44,8 @@ int main(void)
 
     while (!WindowShouldClose())
     {
+        UpdateMusicStream(music);
+
         scarfy_x += scarfy_vx;
         back_x += back_vx;
 
@@ -72,6 +82,10 @@ int main(void)
 
         EndDrawing();
     }
+
+    UnloadMusicStream(music);   // Unload music stream buffers from RAM
+
+    CloseAudioDevice(); 
 
     CloseWindow();        // Close window and OpenGL context
 
