@@ -20,8 +20,6 @@ int main(void)
 
     PlayMusicStream(music);
 
-
-
     Texture2D background = LoadTexture("forest.png");
     Texture2D scarfy = LoadTexture("scarfy.png");
 
@@ -34,7 +32,9 @@ int main(void)
     int frame = 0;
 
     float scarfy_x = 0.f;
+    float scarfy_y = (float)frameHeight;
     float scarfy_vx = 3.2f;
+    float scarfy_vy = 0.0f;
     float scarfy_flip = 1.0f;
 
     float back_x = -30.0f;
@@ -42,14 +42,27 @@ int main(void)
 
     float frame_rate = 0.12f;
 
+    float g = 9.8f;
+
     while (!WindowShouldClose())
     {
+        if (IsKeyPressed(KEY_UP)) 
+        {
+            scarfy_vy = -10.0f;
+        }
+    
         UpdateMusicStream(music);
 
         scarfy_x += scarfy_vx;
+        scarfy_y += scarfy_vy;
+
+        if ( scarfy_y > (float)frameHeight ) scarfy_y = (float)frameHeight;
+
         back_x += back_vx;
 
         timer += GetFrameTime();
+
+        scarfy_vy = scarfy_vy + g * timer;
 
         if ( timer > frame_rate )
         {
@@ -69,7 +82,7 @@ int main(void)
 
         sourceRec.width *= scarfy_flip;
 
-        DrawTextureRec(scarfy, sourceRec, Vector2{scarfy_x, (float)frameHeight}, WHITE);
+        DrawTextureRec(scarfy, sourceRec, Vector2{scarfy_x, scarfy_y}, WHITE);
 
         DrawFPS(10, 400);
 
