@@ -7,12 +7,13 @@
 #include <vector>
 #include <variant>
 
-constexpr int screenWidth = 800;
-constexpr int screenHeight = 450;
+constexpr int screen_width = 1200;
+constexpr int screen_height = 450;
+constexpr float floor_y = 250.f;
 
 int main(void)
 {
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - collision area");
+    InitWindow(screen_width, screen_height, "raylib [shapes] example - collision area");
 
     InitAudioDevice();
 
@@ -23,8 +24,8 @@ int main(void)
     Texture2D background = LoadTexture("forest.png");
     Texture2D scarfy = LoadTexture("scarfy.png");
 
-    int frameWidth = scarfy.width/6;
-    int frameHeight = scarfy.height;
+    int frame_width = scarfy.width/6;
+    int frame_height = scarfy.height;
 
     SetTargetFPS(60);
 
@@ -32,7 +33,7 @@ int main(void)
     int frame = 0;
 
     float scarfy_x = 0.f;
-    float scarfy_y = (float)frameHeight;
+    float scarfy_y = floor_y;
     float scarfy_vx = 3.2f;
     float scarfy_vy = 0.0f;
     float scarfy_flip = 1.0f;
@@ -46,21 +47,22 @@ int main(void)
 
     while (!WindowShouldClose())
     {
-        if (IsKeyPressed(KEY_UP)) 
+        if (IsKeyPressed(KEY_SPACE)) 
         {
-            scarfy_vy = -10.0f;
+            scarfy_vy = -17.0f;
         }
     
         UpdateMusicStream(music);
 
+        timer += GetFrameTime();
+
         scarfy_x += scarfy_vx;
         scarfy_y += scarfy_vy;
 
-        if ( scarfy_y > (float)frameHeight ) scarfy_y = (float)frameHeight;
+        // Floor check
+        if ( scarfy_y > floor_y ) scarfy_y = floor_y;
 
         back_x += back_vx;
-
-        timer += GetFrameTime();
 
         scarfy_vy = scarfy_vy + g * timer;
 
@@ -75,10 +77,10 @@ int main(void)
 
         ClearBackground(WHITE);
 
-        Rectangle src_back = { 150.f, 560.0f, (float)screenWidth+200.0f, (float)screenHeight };
+        Rectangle src_back = { 150.f, 560.0f, (float)screen_width+200.0f, (float)screen_height };
         DrawTextureRec(background, src_back, Vector2{back_x, 0}, WHITE);
 
-        Rectangle sourceRec = { (float)frameWidth*frame, 0.0f, (float)frameWidth, (float)frameHeight };
+        Rectangle sourceRec = { (float)frame_width*frame, 0.0f, (float)frame_width, (float)frame_height };
 
         sourceRec.width *= scarfy_flip;
 
@@ -86,7 +88,7 @@ int main(void)
 
         DrawFPS(10, 400);
 
-        if ( scarfy_x > screenWidth || scarfy_x < 0-frameWidth ) 
+        if ( scarfy_x > screen_width || scarfy_x < 0-frame_width ) 
         { 
             scarfy_vx   *= -1.f; 
             scarfy_flip *= -1.f; 
