@@ -107,6 +107,11 @@ int main(void)
             erizos.push_back(Erizo{0.f, floor_y - 50.f});
         }
 
+        if ( IsKeyDown(KEY_J) && IsKeyDown(KEY_A) && IsKeyDown(KEY_V) && IsKeyDown(KEY_I) ) 
+        {
+            scarfy_lives = 10;
+        }
+
         UpdateMusicStream(music);
 
         timer += GetFrameTime();
