@@ -14,7 +14,7 @@ constexpr float g = 9.8f;
 
 struct Erizo
 {
-    Erizo(float x, float y): erizo_x{x}, erizo_y{y}
+    Erizo(float x, float y, float r): erizo_x{x}, erizo_y{y}, erizo_r{r}
     {
         erizo_vx = 9.0f;
     }
@@ -70,6 +70,7 @@ int main(void)
 
     SetTargetFPS(60);
 
+    float global_timer = 0.0f;
     float timer = 0.0f;
     float timer_heart = 0.0f;
     float timer_lives = 0.0f;
@@ -95,7 +96,14 @@ int main(void)
 
     bool is_in_the_air = false;
 
-    float random = GetRandomValue(200, 400)/100.f;
+    int lower_limit = 2000;
+    int upper_limit = 4000;
+
+    float erizo_r = 20.f;
+
+    int level = 1;
+
+    float random = GetRandomValue(lower_limit, upper_limit)/1000.f;
 
     while (!WindowShouldClose())
     {
@@ -105,10 +113,10 @@ int main(void)
             is_in_the_air = true;
         }
 
-        if ( IsKeyPressed(KEY_N) ) 
-        {
-            erizos.push_back(Erizo{0.f, floor_y - 50.f});
-        }
+        //if ( IsKeyPressed(KEY_N) ) 
+        //{
+        //  erizos.push_back(Erizo{0.f, floor_y - erizo_r});
+        //}
 
         if ( IsKeyDown(KEY_J) && IsKeyDown(KEY_A) && IsKeyDown(KEY_V) && IsKeyDown(KEY_I) ) 
         {
@@ -120,13 +128,23 @@ int main(void)
         timer += GetFrameTime();
         timer_heart += GetFrameTime();
         timer_enemy += GetFrameTime();
+        global_timer += GetFrameTime();
+
+        if ( global_timer > 10.f )
+        {
+            global_timer = 0.0f;
+            erizo_r += 3.0f;
+            lower_limit -= 50.f;
+            lower_limit -= 50.f;
+            level++;
+        }
 
         if ( timer_enemy > random )
         {
             timer_enemy = 0.0f;
-            random = GetRandomValue(100, 300)/100.f;
-            if ( scarfy_x < 200.f) { random = GetRandomValue(100, 300)/100.f; }
-            else { erizos.push_back(Erizo{0.f, floor_y - 50.f}); }
+            random = GetRandomValue(lower_limit, upper_limit)/1000.f;
+            if ( scarfy_x < 200.f) { random = GetRandomValue(lower_limit, upper_limit)/1000.f; }
+            else { erizos.push_back(Erizo{0.f, floor_y - 50.f, erizo_r}); }
         }
 
         if ( !can_hurt )
@@ -223,6 +241,9 @@ int main(void)
         {
              DrawText("GAME OVER", 360, 200, 80, LIGHTGRAY);
         }
+
+        std::string level_str = "Level " + std::to_string(level);
+        DrawText(level_str.c_str(), 1100, 400, 20, LIGHTGRAY);
 
         EndDrawing();
     }
