@@ -58,6 +58,10 @@ int main(void)
 
     Texture2D background = LoadTexture("forest.png");
     Texture2D scarfy = LoadTexture("scarfy.png");
+    Texture2D heart = LoadTexture("heart.png");
+
+    int heart_width = heart.width/8;
+    int heart_height = heart.height;
 
     int frame_width = scarfy.width/6;
     int frame_height = scarfy.height;
@@ -67,19 +71,26 @@ int main(void)
     SetTargetFPS(60);
 
     float timer = 0.0f;
+    float timer_heart = 0.0f;
+    float timer_lives = 0.0f;
+
     int frame = 0;
+    int frame_heart = 0;
+
+    bool can_hurt = true;
 
     float scarfy_x = 0.f;
     float scarfy_y = floor_y;
     float scarfy_vx = 3.2f;
     float scarfy_vy = 0.0f;
     float scarfy_flip = 1.0f;
-    int scarfy_lives = 1000;
+    int scarfy_lives = 3;
 
     float back_x = -30.0f;
     float back_vx = -0.1f;
 
     float frame_rate = 0.12f;
+    float heart_rate = 0.07f;
 
     bool is_in_the_air = false;
 
@@ -95,10 +106,21 @@ int main(void)
         {
             erizos.push_back(Erizo{0.f, floor_y - 50.f});
         }
-    
+
         UpdateMusicStream(music);
 
         timer += GetFrameTime();
+        timer_heart += GetFrameTime();
+
+        if ( !can_hurt )
+        {
+            timer_lives += GetFrameTime();
+            if ( timer_lives > 1.f )
+            {
+                timer_lives = 0.0f;
+                can_hurt = true;
+            }
+        }
 
         scarfy_x += scarfy_vx;
         scarfy_y += scarfy_vy;
@@ -121,13 +143,24 @@ int main(void)
             frame %= 6;
         }
 
+        if ( timer_heart > heart_rate )
+        {
+            timer_heart = 0.0f;
+            frame_heart++;
+            frame_heart %= 8;
+        }
+
         for (auto& erizo: erizos)
         { 
             erizo.update(timer);
             Vector2 erizo_center { erizo.erizo_x, erizo.erizo_y };
             if ( CheckCollisionCircleRec(erizo_center, erizo.erizo_r, Rectangle{scarfy_x, scarfy_y, (float)frame_width, (float)frame_height}) )
             {
-                scarfy_lives--;
+                if ( can_hurt )
+                {
+                    can_hurt = false;
+                    scarfy_lives--;
+                }
             }
         }
 
@@ -138,28 +171,41 @@ int main(void)
         Rectangle src_back = { 150.f, 560.0f, (float)screen_width+200.0f, (float)screen_height };
         DrawTextureRec(background, src_back, Vector2{back_x, 0}, WHITE);
 
-        Rectangle sourceRec = { (float)frame_width*frame, 0.0f, (float)frame_width, (float)frame_height };
+        if ( scarfy_lives > 0 )
+        {
 
-        sourceRec.width *= scarfy_flip;
+            Rectangle source_rec = { (float)frame_width*frame, 0.0f, (float)frame_width, (float)frame_height };
 
-        DrawTextureRec(scarfy, sourceRec, Vector2{scarfy_x, scarfy_y}, WHITE);
+            source_rec.width *= scarfy_flip;
 
-        for (auto& erizo: erizos)
-        { 
-            erizo.draw();
+            DrawTextureRec(scarfy, source_rec, Vector2{scarfy_x, scarfy_y}, WHITE);
+
+            float heart_x = 20.f;
+            for (size_t i=0; i!=scarfy_lives; ++i) 
+            {
+                Rectangle heart_rec = { (float)heart_width*frame_heart, 0.0f, (float)heart_width, (float)heart_height };
+                DrawTextureRec(heart, heart_rec, Vector2{heart_x, 20}, WHITE);
+                heart_x += heart_width;
+            }
+
+            for (auto& erizo: erizos)
+            { 
+                erizo.draw();
+            }
+
+            DrawFPS(1100, 10);
+
+            if ( scarfy_x > screen_width || scarfy_x < 0-frame_width ) 
+            { 
+                scarfy_vx   *= -1.f; 
+                scarfy_flip *= -1.f; 
+                back_vx     *= -1.f; 
+            }
         }
-
-        DrawFPS(1100, 10);
-
-        if ( scarfy_x > screen_width || scarfy_x < 0-frame_width ) 
-        { 
-            scarfy_vx   *= -1.f; 
-            scarfy_flip *= -1.f; 
-            back_vx     *= -1.f; 
+        else
+        {
+             DrawText("GAME OVER", 360, 200, 80, LIGHTGRAY);
         }
-
-        std::string live = "Live Bar: " + std::to_string(scarfy_lives);
-        DrawText(live.c_str(), 1000, screen_height - 35, 20, LIGHTGRAY);
 
         EndDrawing();
     }
