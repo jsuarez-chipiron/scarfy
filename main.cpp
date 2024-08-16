@@ -73,6 +73,7 @@ int main(void)
     float timer = 0.0f;
     float timer_heart = 0.0f;
     float timer_lives = 0.0f;
+    float timer_enemy = 0.0f;
 
     int frame = 0;
     int frame_heart = 0;
@@ -93,6 +94,8 @@ int main(void)
     float heart_rate = 0.07f;
 
     bool is_in_the_air = false;
+
+    float random = GetRandomValue(200, 400)/100.f;
 
     while (!WindowShouldClose())
     {
@@ -116,6 +119,15 @@ int main(void)
 
         timer += GetFrameTime();
         timer_heart += GetFrameTime();
+        timer_enemy += GetFrameTime();
+
+        if ( timer_enemy > random )
+        {
+            timer_enemy = 0.0f;
+            random = GetRandomValue(100, 300)/100.f;
+            if ( scarfy_x < 200.f) { random = GetRandomValue(100, 300)/100.f; }
+            else { erizos.push_back(Erizo{0.f, floor_y - 50.f}); }
+        }
 
         if ( !can_hurt )
         {
