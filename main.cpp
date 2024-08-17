@@ -1,6 +1,5 @@
 #include "raylib.h"
 
-#include <string>
 #include <vector>
 #include <iostream>
 
@@ -251,8 +250,7 @@ int main(void)
              DrawText("GAME OVER", 360, 200, 80, LIGHTGRAY);
         }
 
-        std::string level_str = "Level " + std::to_string(level);
-        DrawText(level_str.c_str(), 1100, 400, 20, LIGHTGRAY);
+        DrawText(TextFormat("Level %d", level), 1100, 400, 20, LIGHTGRAY);
 
         EndDrawing();
     }
