@@ -1,22 +1,44 @@
 #include "raylib.h"
 
-#include <cstdlib>
-#include <ctime>
-#include <string>
-#include <iostream>
-#include <vector>
-#include <variant>
-
 constexpr int screen_width = 1200;
 constexpr int screen_height = 450;
 constexpr float floor_y = 250.f;
 constexpr float g = 9.8f;
 
+template<typename T, int N>
+struct StackVector
+{
+    T values[N] = {T{}};
+    int last = 0;
+
+    [[nodiscard]] bool push(T&& item)
+    {
+        if ( last != N-1 )
+        {
+            values[last] = item;
+            last++;
+            return true;
+        }
+        return false;
+    }
+
+    void remove(int idx)
+    {
+        for (int i=idx; i!=last-1; ++i)
+        {
+            values[i] = values[i+1];
+        }
+        last--;
+    }
+};
+
 struct Erizo
 {
-    Erizo(float x, float y, float r): erizo_x{x}, erizo_y{y}, erizo_r{r}
+    Erizo() = default;
+
+    Erizo(float x, float y, float vx, float r): erizo_x{x}, erizo_y{y}, erizo_r{r}
     {
-        erizo_vx = 9.0f;
+        erizo_vx = vx;
     }
 
     float erizo_x;
@@ -52,13 +74,13 @@ int main(void)
 
     InitAudioDevice();
 
-    Music music = LoadMusicStream("country.mp3");
+    Music music = LoadMusicStream("resources/country.mp3");
 
     PlayMusicStream(music);
 
-    Texture2D background = LoadTexture("forest.png");
-    Texture2D scarfy = LoadTexture("scarfy.png");
-    Texture2D heart = LoadTexture("heart.png");
+    Texture2D background = LoadTexture("resources/forest.png");
+    Texture2D scarfy = LoadTexture("resources/scarfy.png");
+    Texture2D heart = LoadTexture("resources/heart.png");
 
     int heart_width = heart.width/8;
     int heart_height = heart.height;
@@ -66,7 +88,7 @@ int main(void)
     int frame_width = scarfy.width/6;
     int frame_height = scarfy.height;
 
-    std::vector<Erizo> erizos;
+    StackVector<Erizo, 10> erizos;
 
     SetTargetFPS(60);
 
@@ -100,6 +122,8 @@ int main(void)
     int upper_limit = 4000;
 
     float erizo_r = 20.f;
+    int erizo_min_vx = 90;
+    int erizo_vx = 91;
 
     int level = 1;
 
@@ -134,9 +158,11 @@ int main(void)
         {
             global_timer = 0.0f;
             erizo_r += 3.0f;
+            erizo_vx += 5;
             lower_limit -= 50.f;
             lower_limit -= 50.f;
             level++;
+            if ( level % 5 == 0 ) { erizo_min_vx += 10; }
         }
 
         if ( timer_enemy > random )
@@ -144,7 +170,15 @@ int main(void)
             timer_enemy = 0.0f;
             random = GetRandomValue(lower_limit, upper_limit)/1000.f;
             if ( scarfy_x < 200.f) { random = GetRandomValue(lower_limit, upper_limit)/1000.f; }
-            else { erizos.push_back(Erizo{0.f, floor_y - 50.f, erizo_r}); }
+            else 
+            { 
+                float evx = GetRandomValue(erizo_min_vx, erizo_vx)/10.f;
+                // std::cout << erizo_min_vx << '\n';
+                // std::cout << erizo_vx << '\n';
+                // std::cout << evx << '\n';
+
+                if ( !erizos.push(Erizo{0.f, floor_y - 50.f, evx, erizo_r}) ) { break; }
+            }
         }
 
         if ( !can_hurt )
@@ -185,8 +219,9 @@ int main(void)
             frame_heart %= 8;
         }
 
-        for (auto& erizo: erizos)
+        for (int i=0; i!=erizos.last; ++i)
         { 
+            Erizo& erizo = erizos.values[i];
             erizo.update(timer);
             Vector2 erizo_center { erizo.erizo_x, erizo.erizo_y };
             if ( CheckCollisionCircleRec(erizo_center, erizo.erizo_r, Rectangle{scarfy_x, scarfy_y, (float)frame_width, (float)frame_height}) )
@@ -196,6 +231,15 @@ int main(void)
                     can_hurt = false;
                     scarfy_lives--;
                 }
+            }
+        }
+
+        for (int i=0; i!=erizos.last; ++i)
+        {
+            if ( erizos.values[i].erizo_x > 3000.f ) 
+            { 
+                erizos.remove(i); 
+                break; //just remove one item by frame
             }
         }
 
@@ -216,15 +260,16 @@ int main(void)
             DrawTextureRec(scarfy, source_rec, Vector2{scarfy_x, scarfy_y}, WHITE);
 
             float heart_x = 20.f;
-            for (size_t i=0; i!=scarfy_lives; ++i) 
+            for (int i=0; i!=scarfy_lives; ++i) 
             {
                 Rectangle heart_rec = { (float)heart_width*frame_heart, 0.0f, (float)heart_width, (float)heart_height };
                 DrawTextureRec(heart, heart_rec, Vector2{heart_x, 20}, WHITE);
                 heart_x += heart_width;
             }
 
-            for (auto& erizo: erizos)
+            for (int i=0; i!=erizos.last; ++i)
             { 
+                Erizo& erizo = erizos.values[i];
                 erizo.draw();
             }
 
@@ -242,11 +287,23 @@ int main(void)
              DrawText("GAME OVER", 360, 200, 80, LIGHTGRAY);
         }
 
-        std::string level_str = "Level " + std::to_string(level);
-        DrawText(level_str.c_str(), 1100, 400, 20, LIGHTGRAY);
+        DrawText(TextFormat("Level %d", level), 1100, 400, 20, LIGHTGRAY);
 
         EndDrawing();
     }
+
+
+    // StackVector<int, 6> numeros;
+    // for (int i=0; i!=5; ++i) { numeros.push((int&&)i); }
+
+    // numeros.remove(2);
+    // numeros.remove(3);
+    // numeros.remove(0);
+
+    // for (int i=0; i!=numeros.last; ++i)
+    // {
+    //     std::cout << numeros.values[i] << '\n';
+    // }
 
     UnloadMusicStream(music);   // Unload music stream buffers from RAM
 
