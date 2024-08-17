@@ -1,11 +1,7 @@
 #include "raylib.h"
 
-#include <cstdlib>
-#include <ctime>
 #include <string>
-#include <iostream>
 #include <vector>
-#include <variant>
 
 constexpr int screen_width = 1200;
 constexpr int screen_height = 450;
@@ -52,13 +48,13 @@ int main(void)
 
     InitAudioDevice();
 
-    Music music = LoadMusicStream("country.mp3");
+    Music music = LoadMusicStream("resources/country.mp3");
 
     PlayMusicStream(music);
 
-    Texture2D background = LoadTexture("forest.png");
-    Texture2D scarfy = LoadTexture("scarfy.png");
-    Texture2D heart = LoadTexture("heart.png");
+    Texture2D background = LoadTexture("resources/forest.png");
+    Texture2D scarfy = LoadTexture("resources/scarfy.png");
+    Texture2D heart = LoadTexture("resources/heart.png");
 
     int heart_width = heart.width/8;
     int heart_height = heart.height;
