@@ -1,15 +1,41 @@
 #include "raylib.h"
 
-#include <vector>
-#include <iostream>
-
 constexpr int screen_width = 1200;
 constexpr int screen_height = 450;
 constexpr float floor_y = 250.f;
 constexpr float g = 9.8f;
 
+template<typename T, int N>
+struct StackVector
+{
+    T values[N] = {T{}};
+    int last = 0;
+
+    [[nodiscard]] bool push(T&& item)
+    {
+        if ( last != N-1 )
+        {
+            values[last] = item;
+            last++;
+            return true;
+        }
+        return false;
+    }
+
+    void remove(int idx)
+    {
+        for (int i=idx; i!=last-1; ++i)
+        {
+            values[i] = values[i+1];
+        }
+        last--;
+    }
+};
+
 struct Erizo
 {
+    Erizo() = default;
+
     Erizo(float x, float y, float vx, float r): erizo_x{x}, erizo_y{y}, erizo_r{r}
     {
         erizo_vx = vx;
@@ -62,7 +88,7 @@ int main(void)
     int frame_width = scarfy.width/6;
     int frame_height = scarfy.height;
 
-    std::vector<Erizo> erizos;
+    StackVector<Erizo, 10> erizos;
 
     SetTargetFPS(60);
 
@@ -147,11 +173,11 @@ int main(void)
             else 
             { 
                 float evx = GetRandomValue(erizo_min_vx, erizo_vx)/10.f;
-                std::cout << erizo_min_vx << '\n';
-                std::cout << erizo_vx << '\n';
-                std::cout << evx << '\n';
+                // std::cout << erizo_min_vx << '\n';
+                // std::cout << erizo_vx << '\n';
+                // std::cout << evx << '\n';
 
-                erizos.push_back(Erizo{0.f, floor_y - 50.f, evx, erizo_r}); 
+                if ( !erizos.push(Erizo{0.f, floor_y - 50.f, evx, erizo_r}) ) { break; }
             }
         }
 
@@ -193,8 +219,9 @@ int main(void)
             frame_heart %= 8;
         }
 
-        for (auto& erizo: erizos)
+        for (int i=0; i!=erizos.last; ++i)
         { 
+            Erizo& erizo = erizos.values[i];
             erizo.update(timer);
             Vector2 erizo_center { erizo.erizo_x, erizo.erizo_y };
             if ( CheckCollisionCircleRec(erizo_center, erizo.erizo_r, Rectangle{scarfy_x, scarfy_y, (float)frame_width, (float)frame_height}) )
@@ -204,6 +231,15 @@ int main(void)
                     can_hurt = false;
                     scarfy_lives--;
                 }
+            }
+        }
+
+        for (int i=0; i!=erizos.last; ++i)
+        {
+            if ( erizos.values[i].erizo_x > 3000.f ) 
+            { 
+                erizos.remove(i); 
+                break; //just remove one item by frame
             }
         }
 
@@ -224,15 +260,16 @@ int main(void)
             DrawTextureRec(scarfy, source_rec, Vector2{scarfy_x, scarfy_y}, WHITE);
 
             float heart_x = 20.f;
-            for (size_t i=0; i!=scarfy_lives; ++i) 
+            for (int i=0; i!=scarfy_lives; ++i) 
             {
                 Rectangle heart_rec = { (float)heart_width*frame_heart, 0.0f, (float)heart_width, (float)heart_height };
                 DrawTextureRec(heart, heart_rec, Vector2{heart_x, 20}, WHITE);
                 heart_x += heart_width;
             }
 
-            for (auto& erizo: erizos)
+            for (int i=0; i!=erizos.last; ++i)
             { 
+                Erizo& erizo = erizos.values[i];
                 erizo.draw();
             }
 
@@ -254,6 +291,19 @@ int main(void)
 
         EndDrawing();
     }
+
+
+    // StackVector<int, 6> numeros;
+    // for (int i=0; i!=5; ++i) { numeros.push((int&&)i); }
+
+    // numeros.remove(2);
+    // numeros.remove(3);
+    // numeros.remove(0);
+
+    // for (int i=0; i!=numeros.last; ++i)
+    // {
+    //     std::cout << numeros.values[i] << '\n';
+    // }
 
     UnloadMusicStream(music);   // Unload music stream buffers from RAM
 
