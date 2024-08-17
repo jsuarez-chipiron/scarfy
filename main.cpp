@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 constexpr int screen_width = 1200;
 constexpr int screen_height = 450;
@@ -10,9 +11,9 @@ constexpr float g = 9.8f;
 
 struct Erizo
 {
-    Erizo(float x, float y, float r): erizo_x{x}, erizo_y{y}, erizo_r{r}
+    Erizo(float x, float y, float vx, float r): erizo_x{x}, erizo_y{y}, erizo_r{r}
     {
-        erizo_vx = 9.0f;
+        erizo_vx = vx;
     }
 
     float erizo_x;
@@ -96,6 +97,8 @@ int main(void)
     int upper_limit = 4000;
 
     float erizo_r = 20.f;
+    int erizo_min_vx = 90;
+    int erizo_vx = 91;
 
     int level = 1;
 
@@ -130,9 +133,11 @@ int main(void)
         {
             global_timer = 0.0f;
             erizo_r += 3.0f;
+            erizo_vx += 5;
             lower_limit -= 50.f;
             lower_limit -= 50.f;
             level++;
+            if ( level % 5 == 0 ) { erizo_min_vx += 10; }
         }
 
         if ( timer_enemy > random )
@@ -140,7 +145,15 @@ int main(void)
             timer_enemy = 0.0f;
             random = GetRandomValue(lower_limit, upper_limit)/1000.f;
             if ( scarfy_x < 200.f) { random = GetRandomValue(lower_limit, upper_limit)/1000.f; }
-            else { erizos.push_back(Erizo{0.f, floor_y - 50.f, erizo_r}); }
+            else 
+            { 
+                float evx = GetRandomValue(erizo_min_vx, erizo_vx)/10.f;
+                std::cout << erizo_min_vx << '\n';
+                std::cout << erizo_vx << '\n';
+                std::cout << evx << '\n';
+
+                erizos.push_back(Erizo{0.f, floor_y - 50.f, evx, erizo_r}); 
+            }
         }
 
         if ( !can_hurt )
