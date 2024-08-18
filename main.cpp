@@ -287,7 +287,7 @@ int main(void)
              DrawText("GAME OVER", 360, 200, 80, LIGHTGRAY);
         }
 
-        DrawText(TextFormat("Level %d", level), 1100, 400, 20, LIGHTGRAY);
+        DrawText(TextFormat("Level %d", level), 1050, 400, 26, LIGHTGRAY);
 
         EndDrawing();
     }
